@@ -23,7 +23,7 @@ def extract_title(markdown):
         if line.startswith("# "):
             return line[2:]
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, base):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
     with open(from_path, "r") as file:
         markdown_file = file.read()
@@ -33,19 +33,21 @@ def generate_page(from_path, template_path, dest_path):
     node = markdown_to_html_node(markdown_file)
     html = node.to_html()
     template2 = template.replace("{{ Title }}", title)
-    final_html = template2.replace("{{ Content }}", html)
+    template3 = template2.replace("{{ Content }}", html)
+    template4 = template3.replace(f'href="/', f'href="{base}')
+    final_html = template4.replace(f'src="/', f'src="{base}')
     dir = os.path.dirname(dest_path)
     if not os.path.exists(dir):
         os.makedirs(dir, exist_ok=True)
     with open(dest_path, "w+") as file:
         file.write(final_html)
 
-def generate_page_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_page_recursive(dir_path_content, template_path, dest_dir_path, base):
     dirs = os.listdir(dir_path_content)
     for dir in dirs:
         curr_path = os.path.join(dir_path_content, dir)
         curr_dest = os.path.join(dest_dir_path, dir.replace(".md", ".html"))
         if os.path.isfile(curr_path):
-            generate_page(curr_path, template_path, curr_dest)
+            generate_page(curr_path, template_path, curr_dest, base)
         else:
-            generate_page_recursive(curr_path, template_path, curr_dest)
+            generate_page_recursive(curr_path, template_path, curr_dest, base)
